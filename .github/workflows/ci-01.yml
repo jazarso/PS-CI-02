@@ -3,12 +3,31 @@ on:
     branches: [ main ]
  
 jobs:
-  build:
+  build-and-basic-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: '14.x'
-      - run: npm install
-      - run: npm test  
+          node-version: '14.x'      
+      - name: Ejecutar docker-compose para tener mysql
+        run: docker-compose up -d            
+      - name: Instalar dependencias
+        run: npm install
+      - name: Ejecutar tests rápidos
+        run: npm test -- app.test.js
+  
+  database-test: 
+    needs: build-and-basic-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '14.x'            
+      - name: Ejecutar docker-compose para tener mysql
+        run: docker-compose up -d            
+      - name: Instalar dependencias
+        run: npm install
+      - name: Ejecutar tests lentos
+        run: npm test -- app.bd.test.js
